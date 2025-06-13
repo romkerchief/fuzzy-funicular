@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="home-content d-flex flex-column justify-content-center align-items-center" style="min-height: 60vh; text-align: center;">
+  <h1 class="home-heading" style="font-weight: 700; color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,0.7);">Weather Lookup</h1>
+  <form method="get" action="{% url 'weather_result' %}" style="margin-top: 18px; max-width: 340px; width: 100%;">
+      <label for="location" class="home-label" style="color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.7);">Enter a location:</label>
+      <input type="text" id="location" name="location" required class="form-control mb-2" placeholder="e.g., New York, London" style="max-width: 300px; margin: 0 auto; display: block;">
+      <button type="submit" class="btn btn-primary w-100">Get Weather</button>
+  </form>
+</div>
+
+<script>
+  const homeImages = [
+    '{% static "lookup/img/sunny.jpg" %}',
+    '{% static "lookup/img/cloudy.jpg" %}',
+    '{% static "lookup/img/rainy.jpg" %}',
+    '{% static "lookup/img/thunderstorm.jpg" %}',
+    '{% static "lookup/img/mist.jpg" %}',
+    '{% static "lookup/img/nature.jpg" %}',
+  ];
+</script>
+<script src="{% static 'lookup/js/home_slideshow.js' %}" defer></script>
+
+<style>
+  /* Light mode styles - no box, just overlaid elements */
+  .home-content form {
+    background: transparent;
+    padding: 20px;
+    border-radius: 0;
+    backdrop-filter: none;
+  }
+  
+  .home-content .form-control {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+  }
+  
+  .home-content .btn-primary {
+    background: rgba(13, 110, 253, 0.9);
+    border: none;
+    backdrop-filter: blur(10px);
+  }
+  
+  .home-content .btn-primary:hover {
+    background: rgba(13, 110, 253, 1);
+  }
+  
+  /* Dark mode styles */
+  body.dark-mode .home-content form {
+    background: transparent !important;
+    padding: 20px;
+    border-radius: 0;
+    backdrop-filter: none;
+  }
+  
+  body.dark-mode .home-heading, body.dark-mode .home-label {
+    color: #fff !important;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.45);
+  }
+  
+  body.dark-mode .home-content .form-control {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    color: #fff !important;
+  }
+  
+  body.dark-mode .home-content .form-control::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+  }
+  
+  body.dark-mode .home-content .form-control:focus {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  body.dark-mode .home-content .btn-primary {
+    background: rgba(13, 110, 253, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  }
+  
+  body.dark-mode .home-content .btn-primary:hover {
+    background: rgba(13, 110, 253, 0.9) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+  }
+  
+  @media (max-width: 600px) {
+    .d-flex.flex-column.justify-content-center.align-items-center {
+      min-height: 40vh !important;
+      font-size: 1.08em;
+    }
+    .home-heading { font-size: 2em !important; }
+  }
+</style>
+
+{% endblock %}

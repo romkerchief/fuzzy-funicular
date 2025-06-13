@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="compare-form-page-content d-flex flex-column justify-content-center align-items-center" style="min-height: 60vh; text-align: center;">
+  <h1 class="compare-heading" style="font-weight: 700; color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,0.7); margin-bottom: 18px;">Compare Weather</h1>
+  
+  {# Display form_error if it exists #}
+  {% if form_error %}
+    <div class="alert alert-danger" role="alert" style="max-width: 420px; width: 100%; margin-bottom: 15px;">
+      {{ form_error }}
+    </div>
+  {% endif %}
+
+  <form method="get" action="{% url 'compare_weather' %}" class="compare-form-actual" style="max-width: 340px; width: 100%;"> {# Adjusted max-width similar to home.html form #}
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="location1" class="form-label compare-label" style="color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.7);">First location:</label>
+      <input type="text" id="location1" name="location1" value="{{ location1_name_raw|default:'' }}" required class="form-control mb-2" placeholder="e.g., New York" style="max-width: 300px; margin: 0 auto; display: block;">
+    </div>
+    <div class="mb-3">
+      <label for="location2" class="form-label compare-label" style="color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.7);">Second location:</label>
+      <input type="text" id="location2" name="location2" value="{{ location2_name_raw|default:'' }}" required class="form-control mb-2" placeholder="e.g., London" style="max-width: 300px; margin: 0 auto; display: block;">
+    </div>
+    <button type="submit" class="btn btn-primary w-100">Compare</button>
+  </form>
+</div>
+
+<script>
+  const homeImages = [ // Using the same generic set as home.html
+    '{% static "lookup/img/sunny.jpg" %}',
+    '{% static "lookup/img/cloudy.jpg" %}',
+    '{% static "lookup/img/rainy.jpg" %}',
+    '{% static "lookup/img/thunderstorm.jpg" %}',
+    '{% static "lookup/img/mist.jpg" %}',
+    '{% static "lookup/img/nature.jpg" %}'
+  ];
+</script>
+<script src="{% static 'lookup/js/home_slideshow.js' %}" defer></script>
+
+{# Styles specific to compare_form.html to mimic home.html form #}
+<style>
+  /* Main content alignment and heading/label styles for light/dark mode */
+  .compare-form-page-content .compare-heading,
+  .compare-form-page-content .compare-label {
+    color: #fff; /* Default for light mode, assuming dark text on light images */
+    text-shadow: 0 2px 12px rgba(0,0,0,0.7);
+  }
+  body.dark-mode .compare-form-page-content .compare-heading,
+  body.dark-mode .compare-form-page-content .compare-label {
+    color: #fff !important; /* Explicitly white for dark mode */
+    text-shadow: 0 2px 12px rgba(0,0,0,0.45);
+  }
+
+  /* Form styling - transparent background */
+  .compare-form-actual {
+    background: transparent;
+    padding: 20px; /* Optional padding */
+    border-radius: 0;
+    backdrop-filter: none; /* No blur on the form container itself */
+  }
+
+  /* Input fields styling (similar to home.html) */
+  .compare-form-page-content .form-control {
+    background: rgba(255, 255, 255, 0.1); /* Light mode input background */
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px); /* Optional: subtle blur for inputs */
+    color: #333; /* Light mode text color */
+  }
+  .compare-form-page-content .form-control::placeholder {
+    color: #666; /* Light mode placeholder color */
+  }
+
+  /* Button styling (similar to home.html) */
+  .compare-form-page-content .btn-primary {
+    background: rgba(13, 110, 253, 0.9); /* Light mode button background */
+    border: none;
+    backdrop-filter: blur(10px); /* Optional: subtle blur for button */
+  }
+  .compare-form-page-content .btn-primary:hover {
+    background: rgba(13, 110, 253, 1);
+  }
+
+  /* Dark mode overrides for form elements (similar to home.html) */
+  body.dark-mode .compare-form-page-content .form-control {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    color: #fff !important;
+  }
+  body.dark-mode .compare-form-page-content .form-control::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+  }
+  body.dark-mode .compare-form-page-content .form-control:focus {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.1) !important;
+  }
+  body.dark-mode .compare-form-page-content .btn-primary {
+    background: rgba(13, 110, 253, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  }
+  body.dark-mode .compare-form-page-content .btn-primary:hover {
+    background: rgba(13, 110, 253, 0.9) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+  }
+  
+  /* Alert styling for dark mode */
+  body.dark-mode .alert-danger {
+    background-color: #522222;
+    color: #f8d7da;
+    border-color: #8a2d2d;
+  }
+
+  /* Responsive adjustments (optional, can copy from home.html if needed) */
+  @media (max-width: 600px) {
+    .compare-form-page-content.d-flex.flex-column.justify-content-center.align-items-center {
+      min-height: 40vh !important; /* Adjust as needed */
+      /* font-size: 1.08em; /* Example from home.html */
+    }
+    .compare-form-page-content .compare-heading {
+      font-size: 2em !important; /* Example from home.html */
+    }
+  }
+</style>
+{% endblock %}

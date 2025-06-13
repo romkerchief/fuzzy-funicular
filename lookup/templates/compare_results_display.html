@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+
+    {# Display overall page errors first #}
+    {% if page_errors %}
+    <div class="page-content-box mb-4">
+        <div class="alert alert-danger" role="alert"> 
+            <h4 class="alert-heading">There were some issues:</h4>
+            {% for error_msg in page_errors %}
+                <p class="mb-1">{{ error_msg }}</p>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {# Display Comparison Summary only if comparison data exists AND no critical page errors #}
+    {% if comparison and not page_errors %} 
+        <div class="page-content-box mb-4">
+          <div>
+          <h3>Comparison Summary for {{ location1|title }} and {{ location2|title }}</h3>
+          <ul>
+              {% if comparison.temp %}<li>{{ comparison.temp }}</li>{% endif %}
+              {% if comparison.humidity %}<li>{{ comparison.humidity }}</li>{% endif %}
+              {% if comparison.wind %}<li>{{ comparison.wind }}</li>{% endif %}
+          </ul>
+          </div>
+        </div>
+    {% elif not comparison and not page_errors and location1 and location2 %}
+        <div class="page-content-box mb-4">
+            <p class="text-warning">Could not generate a full comparison summary. One or both locations might have had issues fetching all data. See details below.</p>
+        </div>
+    {% endif %}
+
+  <div class="page-content-box">
+    <div class="row g-3">
+      {# --- Column for Location 1 --- #}
+      <div class="col-12 col-md-6">
+        {% if location1 %} {# Display heading if location1 name was provided #}
+          <h2>{{ location1|title }}</h2>
+          {# Check if weather1 data is valid (exists and no error key) #}
+          {# If there were page_errors, they are already displayed above. #}
+          {# Here, we focus on successfully fetched data or specific sub-component errors. #}
+          {% if weather1 and not weather1.error %}
+            <p>Temperature: {{ weather1.main.temp }} &deg;C</p>
+            <p>Weather: {{ weather1.weather.0.main }} ({{ weather1.weather.0.description }})</p>
+            <p>Humidity: {{ weather1.main.humidity }}%</p>
+            <p>Wind: {{ weather1.wind.speed }} m/s</p>
+            <img class="weather-icon-bg" src="https://openweathermap.org/img/wn/{{ weather1.weather.0.icon }}@2x.png" alt="Weather icon">
+            
+            {# AQI for Location 1 #}
+            {% if air_quality1 and not air_quality1.error and air_quality1.list %}
+              {% with aqi=air_quality1.list.0.main.aqi %}
+                <div style="margin-top: 10px;">
+                  <strong>Air Quality Index (AQI):</strong> {{ aqi }}
+                  <span>({% if aqi == 1 %}Good{% elif aqi == 2 %}Fair{% elif aqi == 3 %}Moderate{% elif aqi == 4 %}Poor{% elif aqi == 5 %}Very Poor{% else %}Unknown{% endif %})</span>
+                </div>
+              {% endwith %}
+            {% elif air_quality1 and air_quality1.error %}
+              {# Display specific error for AQI if it failed but main weather was okay #}
+              <p class="text-warning mt-2">Air Quality: {{ air_quality1.error }}</p>
+            {% endif %}
+
+            {# Map for Location 1 #}
+            <div id="map1" 
+              style="height: 200px; width: 100%; margin: 15px 0;"
+              data-lat="{{ weather1.coord.lat|default_if_none:'' }}"
+              data-lon="{{ weather1.coord.lon|default_if_none:'' }}"
+              data-popup-name="{{ weather1.name|escapejs|default_if_none:location1 }}"
+              data-popup-country="{{ weather1.sys.country|escapejs|default_if_none:'' }}">
+              <p class="text-muted p-3">Loading map for {{ location1|title }}...</p>
+            </div>
+
+            {# Forecast for Location 1 #}
+            {% if forecast1 and not forecast1.error and forecast1.list %}
+              <h3 class="mt-3">Forecast</h3>
+              <div class="d-flex flex-row flex-nowrap overflow-auto" style="gap: 10px;">
+              {% for item in forecast1.list|slice:":8" %}
+                <div class="forecast-item-box">
+                  <p style="font-size: 0.9em;"><strong>{{ item.dt_txt }}</strong></p>
+                  <img class="weather-icon-bg" src="https://openweathermap.org/img/wn/{{ item.weather.0.icon }}@2x.png" alt="icon" style="width:50px; height:50px;">
+                  <p style="font-size: 0.9em;">{{ item.main.temp }} &deg;C</p>
+                  <p style="font-size: 0.85em;">{{ item.weather.0.main }}</p>
+                </div>
+              {% endfor %}
+              </div>
+            {% elif forecast1 and forecast1.error %}
+              {# Display specific error for Forecast if it failed but main weather was okay #}
+              <p class="text-warning mt-2">Forecast: {{ forecast1.error }}</p>
+            {% endif %}
+          
+          {% elif not page_errors %} 
+            {# This condition is tricky. If weather1.error exists, page_errors should ideally reflect it.
+               If page_errors is empty AND weather1.error is also empty but weather1 is false, something's off.
+               The view logic tries to put major fetch errors into page_errors.
+               Let's assume if weather1.error is set, it's a specific error not caught by page_errors,
+               or page_errors covers the general failure. We simplify by not re-showing weather1.error if page_errors exists.
+            #}
+             <p class="text-warning">Detailed weather data for {{ location1|title }} is currently unavailable.</p>
+          {% endif %}
+        {% else %}
+            <p class="text-danger">First location was not processed. Check errors above if any.</p>
+        {% endif %}
+      </div>
+
+      {# --- Column for Location 2 --- #}
+      <div class="col-12 col-md-6">
+        {% if location2 %}
+          <h2>{{ location2|title }}</h2>
+          {% if weather2 and not weather2.error %}
+            <p>Temperature: {{ weather2.main.temp }} &deg;C</p>
+            <p>Weather: {{ weather2.weather.0.main }} ({{ weather2.weather.0.description }})</p>
+            <p>Humidity: {{ weather2.main.humidity }}%</p>
+            <p>Wind: {{ weather2.wind.speed }} m/s</p>
+            <img class="weather-icon-bg" src="https://openweathermap.org/img/wn/{{ weather2.weather.0.icon }}@2x.png" alt="Weather icon">
+            
+            {% if air_quality2 and not air_quality2.error and air_quality2.list %}
+              {% with aqi=air_quality2.list.0.main.aqi %}
+                <div style="margin-top: 10px;">
+                  <strong>Air Quality Index (AQI):</strong> {{ aqi }}
+                  <span>({% if aqi == 1 %}Good{% elif aqi == 2 %}Fair{% elif aqi == 3 %}Moderate{% elif aqi == 4 %}Poor{% elif aqi == 5 %}Very Poor{% else %}Unknown{% endif %})</span>
+                </div>
+              {% endwith %}
+            {% elif air_quality2 and air_quality2.error %}
+              <p class="text-warning mt-2">Air Quality: {{ air_quality2.error }}</p>
+            {% endif %}
+
+            <div id="map2" 
+              style="height: 200px; width: 100%; margin: 15px 0;"
+              data-lat="{{ weather2.coord.lat|default_if_none:'' }}"
+              data-lon="{{ weather2.coord.lon|default_if_none:'' }}"
+              data-popup-name="{{ weather2.name|escapejs|default_if_none:location2 }}"
+              data-popup-country="{{ weather2.sys.country|escapejs|default_if_none:'' }}">
+              <p class="text-muted p-3">Loading map for {{ location2|title }}...</p>
+            </div>
+            
+            {% if forecast2 and not forecast2.error and forecast2.list %}
+              <h3 class="mt-3">Forecast</h3>
+              <div class="d-flex flex-row flex-nowrap overflow-auto" style="gap: 10px;">
+              {% for item in forecast2.list|slice:":8" %}
+                <div class="forecast-item-box">
+                  <p style="font-size: 0.9em;"><strong>{{ item.dt_txt }}</strong></p>
+                  <img class="weather-icon-bg" src="https://openweathermap.org/img/wn/{{ item.weather.0.icon }}@2x.png" alt="icon" style="width:50px; height:50px;">
+                  <p style="font-size: 0.9em;">{{ item.main.temp }} &deg;C</p>
+                  <p style="font-size: 0.85em;">{{ item.weather.0.main }}</p>
+                </div>
+              {% endfor %}
+              </div>
+            {% elif forecast2 and forecast2.error %}
+              <p class="text-warning mt-2">Forecast: {{ forecast2.error }}</p>
+            {% endif %}
+          
+          {% elif not page_errors %}
+             <p class="text-warning">Detailed weather data for {{ location2|title }} is currently unavailable.</p>
+          {% endif %}
+        {% else %}
+            <p class="text-danger">Second location was not processed. Check errors above if any.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const homeImages = [
+    '{% static "lookup/img/sunny.jpg" %}',
+    '{% static "lookup/img/cloudy.jpg" %}',
+    '{% static "lookup/img/rainy.jpg" %}',
+    '{% static "lookup/img/thunderstorm.jpg" %}',
+    '{% static "lookup/img/mist.jpg" %}',
+    '{% static "lookup/img/nature.jpg" %}'
+    // Use the same list as home.html for consistency, or a different generic set
+  ];
+</script>
+<script src="{% static 'lookup/js/home_slideshow.js' %}" defer></script>
+<script src="{% static 'lookup/js/compare_maps_init.js' %}" defer></script>
+
+<style>
+  body.dark-mode .alert-danger {
+    background-color: #522222;
+    color: #f8d7da;
+    border-color: #8a2d2d;
+  }
+  body.dark-mode .alert-warning {
+    background-color: #664d03;
+    color: #ffecb5;
+    border-color: #997404;
+  }
+  body.dark-mode .text-warning {
+      color: #ffd333 !important; 
+  }
+</style>
+{% endblock %}

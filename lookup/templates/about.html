@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+  <div class="page-content-box">
+    <h1>About Weather Lookup</h1>
+    <p>
+      Weather Lookup is a simple web app that lets you check the current weather for any city or location in the world.<br>
+      Just enter a location on the home page and get instant weather info, powered by OpenWeatherMap.
+    </p>
+    <p>
+      <strong>Features:</strong>
+      <ul>
+        <li>Search for weather by city or location</li>
+        <li>See temperature, weather conditions, humidity, wind, and the forecast for the locations you chose</li>
+        <li>Easy to use and mobile-friendly</li>
+      </ul>
+    </p>
+    <p>
+      This project was built as a learning exercise using Django and Python.<br>
+      Created by me :).<br>
+    </p>
+    <p>
+      Thank you to mdbootstrap.com for the navbar template!<br>
+      "sunny.jpg" by <a href="https://unsplash.com/@andreiamza2000?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Amza Andrei</a> on <a href="https://unsplash.com/photos/green-pine-trees-near-snow-covered-mountain-during-daytime-sbbgq0UKjvI?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Unsplash</a><br>
+      "cloudy.jpg" by <a href="https://unsplash.com/@fallout766?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Robin Li</a> on <a href="https://unsplash.com/photos/a-scenic-view-of-a-mountain-range-with-low-lying-clouds-CH4sG3SpqXw?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Unsplash</a><br>
+      "rainy.jpg" by <a href="https://unsplash.com/@getslower?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Andrii Solok 🇺🇦</a> on <a href="https://unsplash.com/photos/a-city-street-at-night-with-cars-parked-on-the-side-of-the-road-FRAaJn-kR6Q?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Unsplash</a><br>
+      "thunderstorm.jpg" by <a href="https://unsplash.com/@jplenio?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Johannes Plenio</a> on <a href="https://unsplash.com/photos/photo-of-island-and-thunder-E-Zuyev2XWo?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Unsplash</a><br>
+      "misty.jpg" by <a href="https://unsplash.com/@stefanbc?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Stefan Cosma</a> on <a href="https://unsplash.com/photos/a-black-and-white-photo-of-a-foggy-forest-9AkciIbQPxw?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Unsplash</a><br>
+      "snowy.jpg" by <a href="https://unsplash.com/@adriannm?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Adriann Meyer</a> on <a href="https://unsplash.com/photos/green-pine-trees-with-snows-0l2TTKSrvtU?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Unsplash</a><br>
+      "nature.jpg" by <a href="https://unsplash.com/@szmigieldesign?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Lukasz Szmigiel</a> on <a href="https://unsplash.com/photos/forest-trees-jFCViYFYcus?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Unsplash</a><br>
+    </p>
+  </div>
+
+  <script>
+    const homeImages = [
+      '{% static "lookup/img/sunny.jpg" %}',
+      '{% static "lookup/img/cloudy.jpg" %}',
+      '{% static "lookup/img/rainy.jpg" %}',
+      '{% static "lookup/img/thunderstorm.jpg" %}',
+      '{% static "lookup/img/mist.jpg" %}',
+      '{% static "lookup/img/nature.jpg" %}'
+      // Add more or change as desired for the about page, or keep consistent with home
+    ];
+  </script>
+  <script src="{% static 'lookup/js/home_slideshow.js' %}" defer></script>
+
+{% endblock %}

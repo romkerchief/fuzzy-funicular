@@ -1,0 +1,127 @@
+{% load static %}
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'lookup/css/global.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  .navbar .container-fluid ul.navbar-nav.flex-row {
+    flex-wrap: wrap;
+    justify-content: center; /* This will center the items if they wrap to a new line or if there's extra space */
+    padding-left: 0; /* Reset default padding if any from ul */
+    list-style: none; /* Reset default list style */
+  }
+  html { font-size: 17px; }
+  body, html, .container, .container-fluid, .navbar, .nav-link, input, button, label, h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter', Arial, Helvetica, sans-serif !important;
+  }
+  .background-image-slot {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0; /* Both start fully transparent */
+    transition: opacity 1.2s cubic-bezier(.4,0,.2,1); /* Transition for the fade effect */
+    z-index: -2; /* Keep them behind other content, but above a base body background if any */
+    /* No background-color needed here, as one will always be fading in over the other */
+  }
+  .background-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    z-index: 0;
+    background: rgba(0,0,0,0.25);
+    pointer-events: none;
+  }
+  body.dark-mode .background-overlay {
+    background: transparent !important;
+  }
+  
+  /* Ensure main content area is transparent */
+  .container-fluid {
+    background: transparent !important;
+  }
+  
+  /* Light mode navbar styling */
+  .navbar {
+    background: rgba(248, 249, 250, 0.95) !important;
+    backdrop-filter: blur(10px);
+  }
+  @media (max-width: 600px) {
+    html { font-size: 18px; }
+    body, .container-fluid, .container, .navbar, .nav-link, input, button, label, h1, h2, h3, h4, h5, h6 {
+      font-size: 1.05em !important;
+    }
+    .navbar { padding-top: 14px !important; padding-bottom: 14px !important; }
+    .nav-link { padding: 8px 12px !important; }
+    input, button { padding: 10px 14px !important; }
+    .background-overlay { background: rgba(0,0,0,0.25); }
+    body.dark-mode .background-overlay { background: rgba(0,0,0,0.25) !important; }
+  }
+</style>
+<div id="bg-image-slot-1" class="background-image-slot"></div>
+<div id="bg-image-slot-2" class="background-image-slot"></div>
+
+<nav class="navbar bg-light navbar-light" style="margin-bottom: 32px; font-size: 1.2rem; padding-top: 12px; padding-bottom: 12px;">
+  <div class="container-fluid d-flex flex-column align-items-center">
+    <ul class="navbar-nav flex-row align-items-center">
+      <li class="nav-item mx-2">
+        <a class="nav-link" href="{% url 'home' %}"><i class="fas fa-home pe-2"></i>Home</a>
+      </li>
+      <li class="nav-item mx-2">
+        <a class="nav-link" href="{% url 'about' %}"><i class="fas fa-info-circle pe-2"></i>About</a>
+      </li>
+      <li class="nav-item mx-2">
+        <a class="nav-link" href="{% url 'compare_weather' %}"><i class="fas fa-balance-scale pe-2"></i>Compare</a>
+      </li>
+      <li class="nav-item mx-2">
+        <button id="darkModeToggle" class="btn btn-outline-secondary" style="padding: 4px 14px; font-size: 1em;">
+          <i id="darkModeIcon" class="fas fa-moon"></i> <span id="darkModeText" class="d-none d-md-inline">Dark Mode</span>
+        </button>
+      </li>
+    </ul>
+  </div>
+  <title> weather lookup </title>
+</nav>
+<script>
+  // Dark mode toggle logic
+  function setDarkMode(on) {
+    const icon = document.getElementById('darkModeIcon');
+    const text = document.getElementById('darkModeText');
+    if (on) {
+      document.body.classList.add('dark-mode');
+      localStorage.setItem('darkMode', 'on');
+      if (icon) icon.className = 'fas fa-sun';
+      if (text) text.textContent = 'Light Mode';
+    } else {
+      document.body.classList.remove('dark-mode');
+      localStorage.setItem('darkMode', 'off');
+      if (icon) icon.className = 'fas fa-moon';
+      if (text) text.textContent = 'Dark Mode';
+    }
+  }
+  document.addEventListener('DOMContentLoaded', function() {
+    const btn = document.getElementById('darkModeToggle');
+    if (localStorage.getItem('darkMode') === 'on') {
+      setDarkMode(true);
+    } else {
+      setDarkMode(false);
+    }
+    btn.addEventListener('click', function() {
+      setDarkMode(!document.body.classList.contains('dark-mode'));
+    });
+  });
+</script>
+
+<div class="container-fluid" style="margin-top: 40px; max-width: 900px;">
+    {% block content %}
+    {% endblock %}
+</div>
+
+<footer>
+</footer>

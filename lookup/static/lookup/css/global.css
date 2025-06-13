@@ -1,0 +1,120 @@
+.navbar-light .navbar-nav .nav-link {
+  color: #000;
+}
+
+.weather-icon-bg {
+  background: #b8d4f7;
+  border: 1px solid #7ba7d9;
+  padding: 6px;
+  border-radius: 12px;
+  display: inline-block;
+}
+
+body.dark-mode .weather-icon-bg {
+  background: #1a2332 !important;
+  border: 1px solid #446688 !important;
+}
+
+body.dark-mode {
+  background: transparent !important;
+  color: #e0e6ed !important;
+}
+body.dark-mode .navbar, body.dark-mode .navbar-light {
+  background: rgba(35, 42, 54, 0.95) !important;
+  color: #e0e6ed !important;
+  backdrop-filter: blur(10px);
+}
+body.dark-mode .navbar-nav .nav-link {
+  color: #e0e6ed !important;
+}
+body.dark-mode .container-fluid, body.dark-mode .container {
+  background: transparent !important;
+  color: #e0e6ed !important;
+}
+body.dark-mode .btn, body.dark-mode input, body.dark-mode button {
+  background: transparent !important;
+  color: #fff !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  box-shadow: none !important;
+}
+body.dark-mode .form-control {
+  background: transparent !important;
+  color: #fff !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  box-shadow: none !important;
+}
+body.dark-mode .form-control:focus {
+  background: transparent !important;
+  color: #fff !important;
+  border-color: rgba(255, 255, 255, 0.8) !important;
+  box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.1) !important;
+}
+body.dark-mode .btn-primary {
+  background: rgba(13, 110, 253, 0.8) !important;
+  border-color: transparent !important;
+}
+body.dark-mode .btn-primary:hover {
+  background: rgba(13, 110, 253, 0.9) !important;
+}
+body.dark-mode .card, body.dark-mode [style*="background: #f8f9fa"] {
+  background: #232a36 !important;
+  color: #e0e6ed !important;
+  border-color: #446688 !important;
+}
+body.dark-mode hr, body.dark-mode .border, body.dark-mode [style*="border: 1px solid #ccc"] {
+  border-color: #446688 !important;
+}
+
+.home-content {
+  background: transparent !important;
+}
+body.dark-mode .home-content {
+  background: transparent !important;
+}
+
+.page-content-box {
+  background: rgba( 255, 255, 255, 0.22 );
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  backdrop-filter: blur( 8px );
+  -webkit-backdrop-filter: blur( 8px );
+  border-radius: 10px;
+  border: 1px solid rgba( 255, 255, 255, 0.18 );
+  padding: 20px;
+}
+
+body.dark-mode .page-content-box {
+  /* From https://css.glass */
+  background: rgba(0, 0, 0, 0.62);
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.77);
+  backdrop-filter: blur(4.4px);
+  -webkit-backdrop-filter: blur(4.4px);
+  border: 1px solid rgba(0, 0, 0, 1);
+  color: #b4b4b4;
+}
+
+.forecast-item-box {
+  border: 1px solid #ccc;
+  padding: 5px;
+  min-width: 140px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+body.dark-mode .forecast-item-box {
+  background: rgba(255,255,255,0.08) !important;
+  border-color: rgba(255,255,255,0.18) !important;
+  color: #e0e6ed !important;
+}
+
+.background-image {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  z-index: -1;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  
+  background-color: #222; 
+  opacity: 0; 
+}

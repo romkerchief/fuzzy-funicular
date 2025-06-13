@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <div class="page-content-box"> 
+        <h1 style="text-transform: capitalize; margin-bottom: 20px;">Weather Result</h1>
+
+        {# Display the searched location if provided #}
+        {% if location_searched %}
+            <p>You searched for: <strong>{{ location_searched|capfirst }}</strong></p>
+        {% endif %}
+
+        {# Display user-friendly errors if any #}
+        {% if user_errors %}
+            <div class="alert alert-danger" role="alert">
+                {% for error_msg in user_errors %}
+                    <p class="mb-1">{{ error_msg }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {# Show weather details only if show_results is true #}
+        {% if show_results %}
+            {# weather_data should be valid if show_results is true, but an extra check doesn't hurt #}
+            {% if weather_data and not weather_data.error %} 
+                <h2>{{ weather_data.name }}, {{ weather_data.sys.country }}</h2>
+                <p>Temperature: {{ weather_data.main.temp }} &deg;C</p>
+                <p>Weather: {{ weather_data.weather.0.main }} ({{ weather_data.weather.0.description }})</p>
+                <p>Humidity: {{ weather_data.main.humidity }}%</p>
+                <p>Wind: {{ weather_data.wind.speed }} m/s</p>
+                <img class="weather-icon-bg" src="https://openweathermap.org/img/wn/{{ weather_data.weather.0.icon }}@2x.png" alt="Weather icon">
+                
+                {% if air_quality and not air_quality.error and air_quality.list %} {# Ensure air_quality.list exists #}
+                  {% with aqi=air_quality.list.0.main.aqi %}
+                    <div style="margin-top: 10px;">
+                      <strong>Air Quality Index (AQI):</strong> {{ aqi }}
+                      <span>
+                        {% if aqi == 1 %}(Good){% elif aqi == 2 %}(Fair){% elif aqi == 3 %}(Moderate){% elif aqi == 4 %}(Poor){% elif aqi == 5 %}(Very Poor){% else %}(Unknown){% endif %}
+                      </span>
+                    </div>
+                  {% endwith %}
+                {% elif air_quality and air_quality.error %} 
+                  {# Only show specific AQI error if not already covered by a general user_error in the main error box #}
+                  {% if not user_errors or air_quality.error not in user_errors|join:" " %}
+                    <div style="margin-top: 10px;" class="text-warning">Could not retrieve air quality data at this time. ({{ air_quality.error }})</div>
+                  {% endif %}
+                {% endif %}
+
+                <div id="map" 
+                  style="height: 300px; width: 100%; margin-top: 20px;"
+                  data-lat="{{ weather_data.coord.lat|default_if_none:'' }}"
+                  data-lon="{{ weather_data.coord.lon|default_if_none:'' }}"
+                  data-popup-name="{{ weather_data.name|escapejs|default_if_none:'' }}"
+                  data-popup-country="{{ weather_data.sys.country|escapejs|default_if_none:'' }}">
+                  <p class="text-muted p-3">Loading map...</p>
+                </div>
+            {% endif %}
+        {% elif not user_errors and not location_searched %} 
+            {# Fallback message if no search term was entered AND no errors were generated (e.g. direct navigation) #}
+            <p>Please enter a location on the <a href="{% url 'home' %}">home page</a> to see weather results.</p>
+        {% endif %}
+    </div>
+
+    {% if show_results and forecast_data and not forecast_data.error and forecast_data.list %} {# Ensure forecast_data.list exists #}
+    <div class="page-content-box mt-3"> 
+        <h2>5-Day Forecast</h2>
+        <div class="d-flex flex-wrap" style="gap: 15px;">
+        {% for item in forecast_data.list|slice:":8" %}
+            <div class="forecast-item-box">
+                <p><strong>{{ item.dt_txt }}</strong></p>
+                <img class="weather-icon-bg" src="https://openweathermap.org/img/wn/{{ item.weather.0.icon }}@2x.png" alt="icon">
+                <p>Temp: {{ item.main.temp }} &deg;C</p>
+                <p>{{ item.weather.0.main }}</p>
+                <p style="font-size: 0.9em; color: #666;">{{ item.weather.0.description }}</p>
+            </div>
+        {% endfor %}
+        </div>
+    </div>
+    {% elif show_results and forecast_data and forecast_data.error %}
+      {# Only show specific forecast error if not already covered by a general user_error #}
+      {% if not user_errors or forecast_data.error not in user_errors|join:" " %}
+        <div class="page-content-box mt-3">
+            <div class="text-warning">Could not retrieve forecast data at this time. ({{ forecast_data.error }})</div>
+        </div>
+      {% endif %}
+    {% endif %}
+</div>
+
+{# Script block to define images for the weather_result_slideshow.js #}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let selectedImages = []; // Default to empty or a generic set
+    {% if show_results and weather_data and not weather_data.error and weather_data.weather %}
+        const weatherMain = '{{ weather_data.weather.0.main|lower }}';
+        switch(weatherMain) {
+            case 'clear':
+                selectedImages = ['{% static "lookup/img/sunny.jpg" %}', '{% static "lookup/img/nature.jpg" %}'];
+                break;
+            case 'clouds':
+                selectedImages = ['{% static "lookup/img/cloudy.jpg" %}', '{% static "lookup/img/mist.jpg" %}'];
+                break;
+            case 'rain':
+            case 'drizzle':
+                selectedImages = ['{% static "lookup/img/rainy.jpg" %}', '{% static "lookup/img/thunderstorm.jpg" %}'];
+                break;
+            case 'thunderstorm':
+                selectedImages = ['{% static "lookup/img/thunderstorm.jpg" %}', '{% static "lookup/img/rainy.jpg" %}'];
+                break;
+            case 'snow':
+                selectedImages = ['{% static "lookup/img/snow.jpg" %}', '{% static "lookup/img/mist.jpg" %}'];
+                break;
+            case 'mist':
+            case 'fog':
+            case 'haze':
+            case 'smoke': // Added smoke as it's similar to mist/fog
+            case 'dust':
+            case 'sand':
+            case 'ash':
+            case 'squall':
+            case 'tornado': // For extreme, maybe a general 'stormy' image
+                selectedImages = ['{% static "lookup/img/mist.jpg" %}', '{% static "lookup/img/cloudy.jpg" %}'];
+                break;
+            default: // Covers any other conditions or if weatherMain is unexpected
+                selectedImages = ['{% static "lookup/img/nature.jpg" %}', '{% static "lookup/img/cloudy.jpg" %}'];
+        }
+    {% else %}
+        // Default slideshow images if no specific weather data to key off, or if there was an error
+        selectedImages = [
+            '{% static "lookup/img/nature.jpg" %}',
+            '{% static "lookup/img/cloudy.jpg" %}',
+            '{% static "lookup/img/sunny.jpg" %}'
+        ];
+    {% endif %}
+    // Make this array available globally for the external script
+    window.weatherSpecificImages = selectedImages;
+});
+</script>
+<script src="{% static 'lookup/js/weather_result_slideshow.js' %}" defer></script>
+<script src="{% static 'lookup/js/weather_map_init.js' %}" defer></script>
+
+<style>
+/* Fade in animation for content */
+.page-content-box {
+    animation: fadeIn 0.8s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Dark mode specific adjustments */
+body.dark-mode .alert-danger {
+    background-color: #522222;
+    color: #f8d7da;
+    border-color: #8a2d2d;
+}
+
+body.dark-mode .text-warning { /* For less critical inline errors */
+    color: #ffd333 !important;
+}
+
+/* Ensure background overlay is visible on this page for better readability (from your previous file) */
+.background-overlay {
+    background: rgba(0,0,0,0.3) !important;
+}
+
+body.dark-mode .background-overlay {
+    background: rgba(0,0,0,0.4) !important;
+}
+
+/* Styles for this page, like .weather-result-content, .forecast-content, .forecast-item
+   can be kept if you used .page-content-box as the primary container. 
+   If those classes were for the main boxes, ensure .page-content-box styling from navbar.css covers them,
+   or re-add their specific dark mode versions here if needed.
+   The .page-content-box should handle the main background/padding/border-radius.
+*/
+</style>
+{% endblock %}
