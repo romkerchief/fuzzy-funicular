@@ -1,4 +1,3 @@
-# views.py
 from django.shortcuts import render
 from django.conf import settings as django_settings # For API Key
 import requests #type:ignore
@@ -38,37 +37,45 @@ def _get_weather_data_for_location(location_name: str):
 
     # Get Forecast and Air Quality Data if current weather was fetched successfully
     if weather_data and not weather_data.get('error'):
+        lat = None
+        lon = None
         try:
             lat = weather_data['coord']['lat']
             lon = weather_data['coord']['lon']
+        except KeyError:
+            error_message = "Coordinates missing in weather data, cannot fetch forecast or AQI."
+            forecast_data = {'error': error_message}
+            air_quality_data = {'error': error_message}
+            # No need to proceed with API calls if coordinates are missing
+            return {
+                'weather': weather_data,
+                'forecast': forecast_data,
+                'air_quality': air_quality_data,
+                'location_name': location_name
+            }
 
+        # Get 5-day/3-hour Forecast
+        try:
             # Get 5-day/3-hour Forecast
             forecast_url = f'https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={API_KEY}&units=metric'
             forecast_response = requests.get(forecast_url)
             forecast_response.raise_for_status()
             forecast_data = forecast_response.json()
+        except (requests.exceptions.RequestException, ValueError) as e:
+            forecast_data = {'error': f'Could not retrieve forecast data: {e}'}
 
+        # Get Air Quality
+        try:
             # Get Air Quality
             air_url = f'https://api.openweathermap.org/data/2.5/air_pollution?lat={lat}&lon={lon}&appid={API_KEY}'
             air_response = requests.get(air_url)
             air_response.raise_for_status()
             air_quality_data = air_response.json()
+        except (requests.exceptions.RequestException, ValueError) as e:
+            air_quality_data = {'error': f'Could not retrieve air quality data: {e}'}
+        # Note: The KeyError for missing 'coord' is handled before these individual try-except blocks.
+        # If lat/lon were not extractable, we would have returned early.
 
-        except requests.exceptions.RequestException as e:
-            if not forecast_data:
-                 forecast_data = {'error': f'Could not retrieve forecast data: {e}'}
-            if not air_quality_data:
-                air_quality_data = {'error': f'Could not retrieve air quality data: {e}'}
-        except ValueError: # Includes JSONDecodeError
-            if not forecast_data:
-                forecast_data = {'error': 'Invalid forecast data format from API.'}
-            if not air_quality_data:
-                air_quality_data = {'error': 'Invalid air quality data format from API.'}
-        except KeyError:
-            # This handles cases where 'coord', 'lat', or 'lon' might be missing
-            error_message = "Coordinates missing in weather data, cannot fetch forecast or AQI."
-            forecast_data = {'error': error_message}
-            air_quality_data = {'error': error_message}
     else:
         # If weather_data itself has an error or is None
         error_msg = weather_data.get('error', 'Weather data not available.') if isinstance(weather_data, dict) else 'Weather data not available.'
@@ -163,6 +170,19 @@ def weather_result(request):
     }
     return render(request, 'weather_result.html', context)
 
+# Helper for compare_weather to reduce repetition in error message generation
+def _add_comparison_error(page_errors_list, data_results, location_name_raw):
+    if data_results['weather'] and data_results['weather'].get('error'):
+        error_detail = data_results['weather'].get('error')
+        if 'Could not retrieve weather data' in error_detail or '404' in error_detail:
+            page_errors_list.append(f"Sorry, we couldn't find weather data for '{location_name_raw}'. Please check the spelling.")
+        elif 'Invalid weather data format' in error_detail:
+            page_errors_list.append(f"The data format for '{location_name_raw}' seems invalid. Please try again.")
+        elif 'Coordinates missing' in error_detail: # Check for the coordinate error
+            page_errors_list.append(f"Could not get detailed data (forecast/AQI) for '{location_name_raw}' because location coordinates were missing.")
+        else: # Generic fallback for other errors from _get_weather_data_for_location or length validation
+            page_errors_list.append(f"An error occurred fetching data for '{location_name_raw}': {error_detail}")
+
 def compare_weather(request):
     location1_name_raw = request.GET.get('location1', '').strip()
     location2_name_raw = request.GET.get('location2', '').strip()
@@ -197,26 +217,12 @@ def compare_weather(request):
     # Location 1
     if not (data1_results['weather'] and data1_results['weather'].get('error')): # Check if error already set by length validation
         data1_results = _get_weather_data_for_location(location1_name_raw)
-        if data1_results['weather'] and data1_results['weather'].get('error'):
-            error_detail = data1_results['weather'].get('error')
-            if 'Could not retrieve weather data' in error_detail or '404' in error_detail:
-                page_errors.append(f"Sorry, we couldn't find weather data for '{location1_name_raw}'. Please check the spelling.")
-            elif 'Invalid weather data format' in error_detail:
-                 page_errors.append(f"The data format for '{location1_name_raw}' seems invalid. Please try again.")
-            else: # Generic fallback for other errors
-                page_errors.append(f"An error occurred fetching data for '{location1_name_raw}'.")
+        _add_comparison_error(page_errors, data1_results, location1_name_raw)
     
     # Location 2
     if not (data2_results['weather'] and data2_results['weather'].get('error')): # Check if error already set by length validation
         data2_results = _get_weather_data_for_location(location2_name_raw)
-        if data2_results['weather'] and data2_results['weather'].get('error'):
-            error_detail = data2_results['weather'].get('error')
-            if 'Could not retrieve weather data' in error_detail or '404' in error_detail:
-                page_errors.append(f"Sorry, we couldn't find weather data for '{location2_name_raw}'. Please check the spelling.")
-            elif 'Invalid weather data format' in error_detail:
-                page_errors.append(f"The data format for '{location2_name_raw}' seems invalid. Please try again.")
-            else:
-                page_errors.append(f"An error occurred fetching data for '{location2_name_raw}'.")
+        _add_comparison_error(page_errors, data2_results, location2_name_raw)
 
     # Perform comparison if both main weather data sets are valid
     weather1_valid = data1_results['weather'] and not data1_results['weather'].get('error')
