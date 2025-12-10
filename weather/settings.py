@@ -117,7 +117,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-WEATHER_API_KEY = '7759bc6c5ecb43c959fedf1b7a0dac69'
+WEATHER_API_KEY = '*'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
